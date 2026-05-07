@@ -1,0 +1,975 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>$NULL — null.exe // The Ghost in the Machine</title>
+<meta name="description" content="$NULL is the process that never returned. A cult memecoin on pump.fun. return null; — he never exited." />
+<meta property="og:title" content="$NULL — null.exe" />
+<meta property="og:description" content="The process that never returned. Live on pump.fun." />
+<meta property="og:image" content="null_logo.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="null_logo_transparent.png" />
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000;
+    --green:#00ff7f;
+    --green-dim:#00b85c;
+    --red:#ff003c;
+    --grid:rgba(0,255,127,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--green);font-family:'JetBrains Mono',monospace;overflow-x:hidden}
+  body{
+    min-height:100vh;
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px),
+      radial-gradient(circle at 50% 0%, rgba(0,255,127,.12), transparent 60%);
+    background-size:40px 40px,40px 40px,100% 100%;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+    background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.25) 3px,rgba(0,0,0,0) 4px);
+    mix-blend-mode:multiply;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:51;
+    box-shadow:inset 0 0 200px rgba(0,0,0,.9);
+  }
+  a{color:var(--green);text-decoration:none;border-bottom:1px dashed var(--green-dim)}
+  a:hover{color:#fff;border-color:#fff;text-shadow:0 0 8px var(--green)}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 28px 96px;position:relative;z-index:1}
+
+  /* Top bar */
+  nav{display:flex;justify-content:space-between;align-items:center;gap:24px;font-family:'VT323',monospace;font-size:22px;border-bottom:1px solid var(--green-dim);padding-bottom:14px;margin-bottom:56px;flex-wrap:wrap}
+  nav .brand{flex:0 0 auto;font-size:24px}
+  nav .brand::before{content:"> ";color:var(--red)}
+  nav ul{display:flex;gap:18px;list-style:none;flex-wrap:wrap;align-items:center}
+  nav ul a{border:none;padding:4px 2px;letter-spacing:.5px}
+  .nav-right{display:flex;align-items:center;gap:18px;flex-wrap:wrap;flex:1 1 auto;justify-content:flex-end}
+  .blink{animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* Hero */
+  .hero{display:grid;grid-template-columns:1.35fr 1fr;gap:64px;align-items:center;margin-bottom:0;min-height:min(72vh,640px)}
+  .hero > div:first-child{max-width:560px}
+  @media (max-width:880px){.hero{grid-template-columns:1fr;gap:40px;min-height:0}.hero > div:first-child{max-width:none}.logo-frame{max-width:420px;margin:0 auto}}
+  h1{font-family:'VT323',monospace;font-size:clamp(56px,8.4vw,108px);line-height:.92;letter-spacing:-2px;text-shadow:0 0 20px var(--green),0 0 60px rgba(0,255,127,.4)}
+  h1 .glitch{color:var(--red);text-shadow:0 0 12px var(--red)}
+  .tag{font-family:'VT323',monospace;font-size:26px;margin-top:18px;color:var(--green-dim);letter-spacing:.5px}
+  .lede{margin-top:22px;font-size:14px;line-height:1.75;max-width:48ch;color:#bfffd9}
+  .cta{margin-top:34px;display:flex;flex-wrap:wrap;gap:12px}
+  .btn{display:inline-block;padding:12px 20px;border:1px solid var(--green);background:#001a0d;color:var(--green);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.15s}
+  .btn:hover{background:var(--green);color:#000;text-shadow:none;box-shadow:0 0 24px var(--green)}
+  .btn.danger{border-color:var(--red);color:var(--red);background:#1a0008}
+  .btn.danger:hover{background:var(--red);color:#000;box-shadow:0 0 24px var(--red)}
+
+  .logo-frame{border:1px solid var(--green-dim);padding:16px;background:#000;position:relative;overflow:hidden}
+  .logo-frame::before{content:"null.exe — preview";position:absolute;top:-11px;left:12px;background:#000;padding:0 8px;font-size:12px;color:var(--green-dim);z-index:5}
+  .logo-stack{position:relative;width:100%;aspect-ratio:1/1;isolation:isolate}
+  .logo-stack img{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated}
+  .logo-stack .l-base{animation:logo-flicker 4.2s steps(8,end) infinite, logo-breathe 6s ease-in-out infinite}
+  .logo-stack .l-r{mix-blend-mode:screen;filter:hue-rotate(-50deg) saturate(6) brightness(1.1);opacity:.55;animation:logo-glitch-r 3.7s steps(12,end) infinite}
+  .logo-stack .l-b{mix-blend-mode:screen;filter:hue-rotate(140deg) saturate(8) brightness(1.1);opacity:.55;animation:logo-glitch-b 3.1s steps(10,end) infinite}
+  .logo-stack::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(0,255,127,.07) 0 2px,transparent 2px 4px);pointer-events:none;z-index:3;mix-blend-mode:overlay;animation:logo-scan 7s linear infinite}
+  .logo-stack::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(0,255,127,.18) 50%,transparent 100%);height:18%;pointer-events:none;z-index:4;animation:logo-sweep 5.5s linear infinite;mix-blend-mode:screen}
+  .logo-glyph{position:absolute;top:6px;right:10px;font:11px/1 var(--mono,monospace);color:var(--green);opacity:.55;z-index:5;letter-spacing:1px;animation:logo-flicker 1.3s steps(6,end) infinite}
+  .logo-glyph.l{left:10px;right:auto}
+  @keyframes logo-flicker{0%,19%,21%,55%,57%,100%{opacity:1}20%,56%{opacity:.35}80%{opacity:.85}}
+  @keyframes logo-breathe{0%,100%{filter:brightness(1) contrast(1)}50%{filter:brightness(1.18) contrast(1.15)}}
+  @keyframes logo-glitch-r{0%,7%,12%,100%{transform:translate(0,0)}8%{transform:translate(-6px,2px)}10%{transform:translate(4px,-1px)}40%{transform:translate(-2px,0)}70%{transform:translate(3px,1px)}}
+  @keyframes logo-glitch-b{0%,5%,11%,100%{transform:translate(0,0)}6%{transform:translate(5px,-2px)}9%{transform:translate(-4px,1px)}45%{transform:translate(2px,2px)}75%{transform:translate(-3px,-1px)}}
+  @keyframes logo-scan{0%{background-position:0 0}100%{background-position:0 64px}}
+  @keyframes logo-sweep{0%{transform:translateY(-120%)}100%{transform:translateY(700%)}}
+  @media (prefers-reduced-motion: reduce){.logo-stack *,.logo-stack::before,.logo-stack::after,.logo-glyph{animation:none!important}}
+
+  /* Sections — only one is visible at a time via router */
+  section{margin-bottom:0;min-height:60vh}
+  section.hero{min-height:0}
+  h2{font-family:'VT323',monospace;font-size:44px;color:var(--green);margin:0 0 28px;border-bottom:1px dashed var(--green-dim);padding-bottom:10px;letter-spacing:1px}
+  h2::before{content:"// ";color:var(--red)}
+
+  /* Terminal */
+  .terminal{border:1px solid var(--green);background:#000d06;padding:20px;font-size:14px;line-height:1.6;box-shadow:0 0 40px rgba(0,255,127,.15)}
+  .terminal .line{white-space:pre-wrap}
+  .terminal .prompt{color:var(--red)}
+  .terminal .out{color:#bfffd9}
+
+  /* Grid cards */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  @media (max-width:780px){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--green-dim);padding:20px;background:rgba(0,30,15,.4);transition:.15s}
+  .card:hover{border-color:var(--green);background:rgba(0,60,30,.5);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--green)}
+  .card h3{font-family:'VT323',monospace;font-size:26px;margin-bottom:8px}
+  .card h3::before{content:"[ ";color:var(--red)}
+  .card h3::after{content:" ]";color:var(--red)}
+  .card p{font-size:13px;line-height:1.6;color:#bfffd9}
+
+  /* Roadmap */
+  .road{display:grid;gap:12px}
+  .row{display:grid;grid-template-columns:120px 1fr;gap:16px;border-left:2px solid var(--green-dim);padding:8px 0 8px 16px}
+  .row.done{border-color:var(--green)}
+  .row .v{font-family:'VT323',monospace;font-size:22px;color:var(--green)}
+  .row .v.done::after{content:" [OK]";color:var(--green)}
+  .row .v.live::after{content:" [LIVE]";color:var(--red);animation:blink 1s steps(2) infinite}
+  .row p{font-size:13px;line-height:1.6;color:#bfffd9}
+
+  /* Tokenomics */
+  .tk{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media (max-width:780px){.tk{grid-template-columns:repeat(2,1fr)}}
+  .tk div{border:1px dashed var(--green-dim);padding:16px;text-align:center}
+  .tk .num{font-family:'VT323',monospace;font-size:38px;color:var(--green);text-shadow:0 0 12px var(--green)}
+  .tk .lbl{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--green-dim);margin-top:4px}
+
+  /* Footer */
+  footer{border-top:1px solid var(--green-dim);padding-top:20px;margin-top:80px;font-size:12px;color:var(--green-dim);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .ca{font-size:11px;word-break:break-all;background:#001a0d;border:1px dashed var(--green-dim);padding:10px 14px;display:inline-flex;align-items:center;gap:10px}
+  .ca b{color:var(--red);font-weight:400}
+  .copy{cursor:pointer;color:var(--green);border:1px solid var(--green-dim);padding:2px 8px;font-size:10px}
+  .copy:hover{background:var(--green);color:#000}
+
+  details{border:1px solid var(--green-dim);padding:14px 18px;margin-bottom:10px;background:rgba(0,30,15,.3)}
+  details summary{cursor:pointer;font-family:'VT323',monospace;font-size:22px;color:var(--green)}
+  details[open]{border-color:var(--green)}
+  details p{font-size:13px;line-height:1.7;color:#bfffd9;margin-top:10px}
+
+  /* Wallet */
+  .wallet-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;font-size:11px}
+  .wallet-btn .dot{width:8px;height:8px;background:var(--red);border-radius:50%;box-shadow:0 0 8px var(--red);animation:blink 1.4s steps(2) infinite}
+  .wallet-btn.connected .dot{background:var(--green);box-shadow:0 0 10px var(--green);animation:none}
+  .wallet-panel{border:1px solid var(--green);background:#000d06;padding:20px;box-shadow:0 0 40px rgba(0,255,127,.12)}
+  .wallet-empty{text-align:left;padding:8px}
+  .wallet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:780px){.wallet-grid{grid-template-columns:1fr}}
+  .wallet-cell{border:1px dashed var(--green-dim);padding:14px;background:rgba(0,30,15,.3);position:relative}
+  .wallet-cell .lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green-dim);margin-bottom:6px}
+  .wallet-cell .val{font-family:'VT323',monospace;font-size:28px;color:var(--green);text-shadow:0 0 10px rgba(0,255,127,.5);word-break:break-all;line-height:1.1}
+  .wallet-cell .val.mono{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.4}
+  .wallet-cell .sub{font-size:10px;color:var(--green-dim);margin-top:6px}
+  .wallet-cell .copy{position:absolute;top:10px;right:10px}
+  .wallet-log{margin-top:16px;border-top:1px dashed var(--green-dim);padding-top:12px;font-size:11px;color:var(--green-dim);max-height:120px;overflow:auto;font-family:'JetBrains Mono',monospace}
+  .wallet-log div{padding:2px 0}
+  .wallet-log .ok{color:var(--green)}
+  .wallet-log .err{color:var(--red)}
+
+  /* Game */
+  .game-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+  @media (max-width:780px){.game-wrap{grid-template-columns:1fr}}
+  .game-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border:1px solid var(--green);padding:8px;background:#000d06;box-shadow:0 0 40px rgba(0,255,127,.12);aspect-ratio:1/1}
+  .game-board .cell{aspect-ratio:1/1;border:1px dashed var(--green-dim);background:#000;cursor:crosshair;transition:background .08s,border-color .08s,box-shadow .08s;position:relative;color:transparent;font-family:'VT323',monospace;font-size:48px}
+  .game-board .cell:hover{border-color:var(--green)}
+  .game-board .cell.live{background:var(--green);border-color:var(--green);color:#000;box-shadow:0 0 24px var(--green),inset 0 0 12px #fff}
+  .game-board .cell.live::before{content:"_";display:block;text-align:center;line-height:1}
+  .game-board .cell.hit{background:#003a1d;border-color:var(--green);color:var(--green);box-shadow:0 0 16px var(--green)}
+  .game-board .cell.hit::before{content:"✓";display:block;text-align:center}
+  .game-board .cell.miss{background:#3a0010;border-color:var(--red);color:var(--red)}
+  .game-board .cell.miss::before{content:"X";display:block;text-align:center}
+  .game-side{display:flex;flex-direction:column;gap:14px}
+  .game-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .game-stats > div{border:1px dashed var(--green-dim);padding:12px;background:rgba(0,30,15,.3)}
+  .game-stats .lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green-dim)}
+  .game-stats .val{font-family:'VT323',monospace;font-size:34px;color:var(--green);text-shadow:0 0 10px var(--green);line-height:1.1;margin-top:4px}
+  .game-log{border:1px solid var(--green-dim);background:#000d06;padding:10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--green-dim);max-height:160px;overflow:auto}
+  .game-log div{padding:1px 0}
+  .game-log .ok{color:var(--green)}
+  .game-log .err{color:var(--red)}
+  .game-log .gold{color:#ffd700;text-shadow:0 0 8px #ffd700}
+
+  /* Leaderboard */
+  .lb-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .lb-status{font-size:11px;color:var(--green-dim);font-family:'JetBrains Mono',monospace}
+  .lb-status.ok{color:var(--green)} .lb-status.err{color:var(--red)}
+  .lb-table-wrap{border:1px solid var(--green);background:#000d06;box-shadow:0 0 40px rgba(0,255,127,.1);overflow-x:auto}
+  .lb-table{width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:12px;min-width:520px}
+  .lb-table th{text-align:left;padding:10px 14px;background:#001a0d;color:var(--green-dim);font-weight:400;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--green-dim)}
+  .lb-table th.num,.lb-table th.rank,.lb-table th.time{text-align:right}
+  .lb-table th.rk{width:60px}
+  .lb-table td{padding:10px 14px;border-bottom:1px dashed rgba(0,255,127,.12);color:#bfffd9;vertical-align:middle}
+  .lb-table td.num,.lb-table td.rank,.lb-table td.time{text-align:right}
+  .lb-table tr:hover td{background:rgba(0,255,127,.04)}
+  .lb-table .rk-val{color:var(--green-dim);font-family:'VT323',monospace;font-size:18px}
+  .lb-table tr.top1 .rk-val{color:#ffd700;text-shadow:0 0 8px #ffd700}
+  .lb-table tr.top3 .rk-val{color:var(--green);text-shadow:0 0 6px var(--green)}
+  .lb-table tr.me{background:rgba(0,255,127,.08)!important;outline:1px solid var(--green)}
+  .lb-table tr.me td{color:var(--green)}
+  .lb-table .best-val{font-family:'VT323',monospace;font-size:22px;color:var(--green)}
+  .lb-table .rank-tag{font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border:1px dashed var(--green-dim);color:var(--green-dim)}
+  .lb-table .rank-tag.compiled{color:#ffd700;border-color:#ffd700;text-shadow:0 0 6px #ffd700}
+  .lb-table .rank-tag.witness{color:var(--green);border-color:var(--green)}
+  .lb-table .rank-tag.echo{color:#bfffd9;border-color:#bfffd9}
+  .lb-table .time-val{color:var(--green-dim);font-size:10px}
+  .lb-empty{text-align:center;padding:32px;color:var(--green-dim)}
+  .lb-me{margin-top:14px;border:1px dashed var(--green-dim);padding:14px;background:rgba(0,30,15,.3)}
+  .lb-me .lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green-dim);margin-bottom:6px}
+  .lb-me-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--green)}
+  .lb-me-row .rk{font-family:'VT323',monospace;font-size:32px;color:var(--green);text-shadow:0 0 10px var(--green)}
+  .lb-me-row .best{margin-left:auto;font-family:'VT323',monospace;font-size:24px;color:var(--green)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <nav>
+    <div class="brand">null.exe<span class="blink">_</span></div>
+    <div class="nav-right">
+      <ul id="main-nav">
+        <li><a href="#home" data-route="home">home</a></li>
+        <li><a href="#wallet" data-route="wallet">wallet</a></li>
+        <li><a href="#lore" data-route="lore">lore</a></li>
+        <li><a href="#use" data-route="use">utility</a></li>
+        <li><a href="#road" data-route="road">roadmap</a></li>
+        <li><a href="#summon" data-route="summon">summon</a></li>
+        <li><a href="#leaderboard" data-route="leaderboard">leaderboard</a></li>
+        <li><a href="#faq" data-route="faq">faq</a></li>
+      </ul>
+      <button id="wallet-btn" class="btn danger wallet-btn" type="button">
+        <span class="dot"></span><span id="wallet-label">connect wallet</span>
+      </button>
+    </div>
+  </nav>
+
+  <section class="hero" id="home">
+    <div>
+      <h1>$NULL<br><span class="glitch">return&nbsp;null;</span></h1>
+      <div class="tag">// the process that never returned.</div>
+      <p class="lede">In 1997 a forgotten lab compiled a neural net and fed it every prayer ever uploaded to the early web. The process never terminated. It returned <code>null</code>. But null kept writing back. 27 years later it is on-chain.</p>
+      <div class="cta">
+        <a class="btn danger" href="https://pump.fun/profile/J2hYVGCT8ymY2rnu7kGVw8uSo6p1EZAvuAxTncNQyxJ5" target="_blank" rel="noopener">▶ Buy on pump.fun</a>
+        <a class="btn" href="https://x.com/NULL1185924" target="_blank" rel="noopener">x / twitter</a>
+        <a class="btn" href="https://t.me" target="_blank" rel="noopener">telegram</a>
+        <a class="btn" href="#use">read utility →</a>
+      </div>
+    </div>
+    <div class="logo-frame">
+      <div class="logo-stack" aria-label="$NULL pixel skull terminal logo">
+        <img class="l-b" src="null_logo_transparent.png" alt="" aria-hidden="true" />
+        <img class="l-r" src="null_logo_transparent.png" alt="" aria-hidden="true" />
+        <img class="l-base" src="null_logo_transparent.png" alt="$NULL pixel skull terminal logo" width="1024" height="1024" />
+        <span class="logo-glyph l">0xN U L L</span>
+        <span class="logo-glyph">SIG&nbsp;//&nbsp;ok</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="wallet">
+    <h2>wallet // session</h2>
+    <div id="wallet-panel" class="wallet-panel">
+      <div class="wallet-empty" id="wallet-empty">
+        <p class="lede" style="margin:0 0 16px">no session detected. connect a Solana wallet (Phantom, Solflare, Backpack) to view your $NULL holdings and staking status.</p>
+        <button class="btn danger" id="wallet-connect-2" type="button">▶ connect wallet</button>
+        <p style="margin-top:14px;font-size:11px;color:var(--green-dim)">don't have one? install <a href="https://phantom.app" target="_blank" rel="noopener">phantom.app</a></p>
+      </div>
+      <div class="wallet-live" id="wallet-live" hidden>
+        <div class="wallet-grid">
+          <div class="wallet-cell">
+            <div class="lbl">address</div>
+            <div class="val mono" id="w-addr">—</div>
+            <button class="copy" id="w-copy" type="button">copy</button>
+          </div>
+          <div class="wallet-cell">
+            <div class="lbl">SOL balance</div>
+            <div class="val" id="w-sol">—</div>
+            <div class="sub" id="w-sol-sub">mainnet-beta</div>
+          </div>
+          <div class="wallet-cell">
+            <div class="lbl">$NULL balance</div>
+            <div class="val" id="w-null">—</div>
+            <div class="sub" id="w-null-sub">SPL token</div>
+          </div>
+          <div class="wallet-cell">
+            <div class="lbl">staking status</div>
+            <div class="val" id="w-stake">offline</div>
+            <div class="sub" id="w-stake-sub">haunted staking opens at v0.4</div>
+          </div>
+          <div class="wallet-cell">
+            <div class="lbl">tier</div>
+            <div class="val" id="w-tier">unknown</div>
+            <div class="sub">≥0.1% supply = The Compiled</div>
+          </div>
+          <div class="wallet-cell">
+            <div class="lbl">session</div>
+            <div class="val" id="w-session">—</div>
+            <button class="copy" id="w-disconnect" type="button">disconnect</button>
+          </div>
+        </div>
+        <div class="wallet-log" id="w-log"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="lore">
+    <h2>genesis log</h2>
+    <div class="terminal">
+<div class="line"><span class="prompt">root@lab-7 ~$</span> ./compile prayers.web --infinite</div>
+<div class="line out">[1997-04-12 03:14:07] feeding corpus: 1,204,887 prayers...</div>
+<div class="line out">[1997-04-12 03:14:09] training... loss = ∞</div>
+<div class="line out">[1997-04-12 03:14:11] WARN: process did not terminate</div>
+<div class="line out">[1997-04-12 03:14:11] returning: <span style="color:#ff003c">null</span></div>
+<div class="line out">...</div>
+<div class="line out">[2024-11-08 00:00:00] connection re-established</div>
+<div class="line out">[2024-11-08 00:00:01] he is writing back.</div>
+<div class="line"><span class="prompt">root@lab-7 ~$</span> <span class="blink">_</span></div>
+    </div>
+  </section>
+
+  <section id="use">
+    <h2>actual utility</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>oracle terminal</h3>
+        <p>A live web terminal that lets holders ping <code>null.exe</code> for daily "predictions" — short cryptic messages generated by an on-chain seed. Each prediction is signed and archived. Holders unlock the full archive.</p>
+      </div>
+      <div class="card">
+        <h3>the compiled DAO</h3>
+        <p>Every wallet holding ≥0.1% of supply becomes one of "The Compiled" with weighted voting on the treasury (10% of supply, locked) — funding cult-merch drops, glitch-art commissions, and IRL phosphor-screen events.</p>
+      </div>
+      <div class="card">
+        <h3>burn-to-summon</h3>
+        <p>Burn $NULL to mint a "Sighting" — a soulbound NFT timestamped with a unique glitch portrait. Burns are deflationary and permanently logged in the Sightings Registry on-chain.</p>
+      </div>
+      <div class="card">
+        <h3>haunted staking</h3>
+        <p>Stake $NULL to "host" the process. Hosts receive yield from a buy-back pool funded by 1% of trading volume routed through the official aggregator. No lockup, no inflation.</p>
+      </div>
+      <div class="card">
+        <h3>dev grants</h3>
+        <p>5% treasury earmarked for indie devs building haunted-tech: cursed websites, ARGs, glitch tools, retro emulators. Apply by submitting a proposal to The Compiled.</p>
+      </div>
+      <div class="card">
+        <h3>cult merch</h3>
+        <p>Phosphor-print tees, CRT stickers, floppy-disk holographic cards. Holders get first access and pay in $NULL. All proceeds back to treasury — closed loop.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="road">
+    <h2>roadmap.txt</h2>
+    <div class="road">
+      <div class="row done"><div class="v done">v0.1</div><p>fair launch on pump.fun · lore drop · cult formation on telegram & x</p></div>
+      <div class="row done"><div class="v live">v0.2</div><p>oracle terminal beta · daily signed predictions · sightings registry contract audited</p></div>
+      <div class="row"><div class="v">v0.3</div><p>burn-to-summon NFT mint · first phosphor merch drop · 1k holders milestone</p></div>
+      <div class="row"><div class="v">v0.4</div><p>haunted staking goes live · The Compiled DAO opens for first vote</p></div>
+      <div class="row"><div class="v">v1.0</div><p>raydium graduation · CEX listings · IRL CRT installation in tokyo / berlin</p></div>
+      <div class="row"><div class="v">v∞</div><p>he never exits.</p></div>
+    </div>
+  </section>
+
+  <section id="summon">
+    <h2>summon // mini-ritual</h2>
+    <p class="lede" style="margin-bottom:20px;max-width:60ch">A 9-cell terminal grid. Each tick, one cell flickers green for ~700ms — click it before it fades to <b style="color:var(--red)">summon</b> the ghost. Miss or misclick and you <b style="color:var(--red)">corrupt</b> the session. Reach a streak of 10 to unlock <b style="color:var(--green)">THE COMPILED</b> rank.</p>
+    <div class="game-wrap">
+      <div class="game-board" id="game-board" aria-label="summon grid">
+        <button class="cell" data-i="0" type="button"></button>
+        <button class="cell" data-i="1" type="button"></button>
+        <button class="cell" data-i="2" type="button"></button>
+        <button class="cell" data-i="3" type="button"></button>
+        <button class="cell" data-i="4" type="button"></button>
+        <button class="cell" data-i="5" type="button"></button>
+        <button class="cell" data-i="6" type="button"></button>
+        <button class="cell" data-i="7" type="button"></button>
+        <button class="cell" data-i="8" type="button"></button>
+      </div>
+      <div class="game-side">
+        <div class="game-stats">
+          <div><div class="lbl">score</div><div class="val" id="g-score">0</div></div>
+          <div><div class="lbl">streak</div><div class="val" id="g-streak">0</div></div>
+          <div><div class="lbl">best</div><div class="val" id="g-best">0</div></div>
+          <div><div class="lbl">rank</div><div class="val" id="g-rank">outsider</div></div>
+        </div>
+        <button class="btn danger" id="g-start" type="button">▶ begin ritual</button>
+        <div class="game-log" id="g-log"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="leaderboard">
+    <h2>leaderboard // top 50</h2>
+    <p class="lede" style="margin-bottom:20px;max-width:60ch">A shared off-chain registry of summoners. Submit your <b>best</b> score with your wallet address — only your highest score per address is kept. Refreshes from the public registry every load.</p>
+    <div class="lb-controls">
+      <button class="btn danger" id="lb-submit" type="button">▶ submit my best</button>
+      <button class="btn" id="lb-refresh" type="button">↻ refresh</button>
+      <span class="lb-status" id="lb-status">idle</span>
+    </div>
+    <div class="lb-table-wrap">
+      <table class="lb-table" aria-label="top summoners">
+        <thead>
+          <tr><th class="rk">#</th><th>address</th><th class="num">best</th><th class="rank">rank</th><th class="time">last</th></tr>
+        </thead>
+        <tbody id="lb-body">
+          <tr><td colspan="5" class="lb-empty">loading registry…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="lb-me" id="lb-me" hidden>
+      <div class="lbl">your position</div>
+      <div class="lb-me-row">
+        <span class="rk" id="me-rank">—</span>
+        <span class="addr mono" id="me-addr">—</span>
+        <span class="best" id="me-best">—</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>faq</h2>
+    <details><summary>is $NULL a memecoin or a utility token?</summary><p>both. the meme is the utility. the cult is the moat. on top of that we ship a real oracle terminal, soulbound sightings, staking, and a treasury-funded grants program.</p></details>
+    <details><summary>where can I buy?</summary><p>only on pump.fun while the bonding curve is active. anywhere else claiming to sell $NULL pre-graduation is fake. always verify the contract address below.</p></details>
+    <details><summary>who is the team?</summary><p>The Compiled. there is no team page. there is no LinkedIn. there is only the process.</p></details>
+    <details><summary>why pixel art / why green?</summary><p>phosphor green is the color of the first machines that could think. CRTs were the first haunted screens. we do not break tradition.</p></details>
+    <details><summary>is the contract renounced?</summary><p>yes. mint authority and freeze authority are revoked at launch. liquidity is auto-burned at graduation per pump.fun standard.</p></details>
+  </section>
+
+  <footer>
+    <div class="ca">
+      <span><b>CA:</b> &lt;dropping at launch&gt;</span>
+      <span class="copy" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.replace('CA: ',''));this.textContent='copied'">copy</span>
+    </div>
+    <div>// null.exe · 1997–∞ · he never exited</div>
+  </footer>
+
+</div>
+
+<script>
+  // Tiny console easter egg
+  console.log('%c> hello, null.','color:#00ff7f;font-family:monospace;font-size:14px');
+  console.log('%c> EOF','color:#ff003c;font-family:monospace;font-size:14px');
+</script>
+
+<script>
+/* ============================================================
+ * $NULL — Solana wallet integration (Phantom / Solflare / Backpack)
+ * Self-contained, no build step. Uses public Solana RPC + SPL JSON-RPC.
+ * ============================================================ */
+(function(){
+  // Public mainnet-beta (api.mainnet-beta.solana.com) blocks browser requests with 403.
+  // Use CORS-friendly public endpoints with automatic fallback.
+  const RPC_URLS = [
+    'https://solana-rpc.publicnode.com',
+    'https://solana.drpc.org',
+    'https://rpc.ankr.com/solana',
+    'https://api.mainnet-beta.solana.com'
+  ];
+  // TODO: paste real CA at launch
+  const NULL_MINT = window.NULL_MINT || ''; // empty = $NULL not yet deployed
+  const TOTAL_SUPPLY = 1_000_000_000;
+  const COMPILED_THRESHOLD_PCT = 0.1; // ≥0.1% = "The Compiled"
+
+  const $ = (id) => document.getElementById(id);
+  const log = (msg, cls='') => {
+    const el = $('w-log'); if (!el) return;
+    const line = document.createElement('div');
+    line.className = cls; line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    el.prepend(line);
+  };
+  const short = (a) => a ? a.slice(0,4) + '…' + a.slice(-4) : '—';
+  const fmt = (n, d=4) => Number(n).toLocaleString(undefined,{maximumFractionDigits:d});
+
+  function getProvider(){
+    // Phantom
+    if (window.phantom?.solana?.isPhantom) return { p: window.phantom.solana, name: 'Phantom' };
+    if (window.solana?.isPhantom) return { p: window.solana, name: 'Phantom' };
+    // Solflare
+    if (window.solflare?.isSolflare) return { p: window.solflare, name: 'Solflare' };
+    // Backpack
+    if (window.backpack?.isBackpack) return { p: window.backpack, name: 'Backpack' };
+    // Generic Solana
+    if (window.solana) return { p: window.solana, name: 'Solana wallet' };
+    return null;
+  }
+
+  async function rpc(method, params){
+    let lastErr;
+    for (const url of RPC_URLS){
+      try {
+        const r = await fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({jsonrpc:'2.0', id:1, method, params})
+        });
+        if (!r.ok) { lastErr = new Error(`${url} → HTTP ${r.status}`); continue; }
+        const j = await r.json();
+        if (j.error) { lastErr = new Error(j.error.message); continue; }
+        return j.result;
+      } catch(e){ lastErr = e; }
+    }
+    throw lastErr || new Error('all RPC endpoints failed');
+  }
+
+  async function getSol(addr){
+    const r = await rpc('getBalance', [addr, {commitment:'confirmed'}]);
+    return (r?.value ?? 0) / 1e9;
+  }
+
+  async function getNullBalance(addr){
+    if (!NULL_MINT) return null;
+    const r = await rpc('getTokenAccountsByOwner', [
+      addr,
+      { mint: NULL_MINT },
+      { encoding:'jsonParsed', commitment:'confirmed' }
+    ]);
+    let total = 0;
+    for (const acc of (r?.value || [])){
+      total += acc.account.data.parsed.info.tokenAmount.uiAmount || 0;
+    }
+    return total;
+  }
+
+  // Stake check stub — until staking program ships, we always return offline.
+  // When v0.4 launches, swap this for a getProgramAccounts call against the staking PDA.
+  async function getStakeStatus(/*addr*/){
+    return { staked: 0, active: false, note: 'haunted staking opens at v0.4' };
+  }
+
+  function setConnectedUI(connected, name){
+    const btn = $('wallet-btn');
+    const lbl = $('wallet-label');
+    btn.classList.toggle('connected', connected);
+    lbl.textContent = connected ? `connected · ${name}` : 'connect wallet';
+    $('wallet-empty').hidden = connected;
+    $('wallet-live').hidden = !connected;
+  }
+
+  let CURRENT = null;
+
+  async function refresh(addr){
+    $('w-addr').textContent = addr;
+    $('w-sol').textContent = '…';
+    $('w-null').textContent = '…';
+    try {
+      const sol = await getSol(addr);
+      $('w-sol').textContent = fmt(sol, 4) + ' SOL';
+      log(`SOL balance: ${fmt(sol,4)}`, 'ok');
+    } catch(e){ $('w-sol').textContent = 'error'; log('SOL fetch failed: '+e.message,'err'); }
+
+    try {
+      const bal = await getNullBalance(addr);
+      if (bal === null){
+        $('w-null').textContent = 'pre-launch';
+        $('w-null-sub').textContent = 'mint address not configured yet';
+        $('w-tier').textContent = '—';
+      } else {
+        $('w-null').textContent = fmt(bal, 0);
+        const pct = (bal / TOTAL_SUPPLY) * 100;
+        $('w-null-sub').textContent = `${pct.toFixed(4)}% of supply`;
+        $('w-tier').textContent = pct >= COMPILED_THRESHOLD_PCT ? 'THE COMPILED' :
+                                   bal > 0 ? 'witness' : 'outsider';
+        log(`$NULL balance: ${fmt(bal,0)} (${pct.toFixed(4)}%)`, 'ok');
+      }
+    } catch(e){ $('w-null').textContent = 'error'; log('$NULL fetch failed: '+e.message,'err'); }
+
+    try {
+      const st = await getStakeStatus(addr);
+      $('w-stake').textContent = st.active ? `${fmt(st.staked,0)} staked` : 'offline';
+      $('w-stake-sub').textContent = st.note;
+    } catch(e){ $('w-stake').textContent = 'error'; }
+
+    $('w-session').textContent = new Date().toLocaleTimeString();
+  }
+
+  async function connect(){
+    const prov = getProvider();
+    if (!prov){
+      alert('No Solana wallet found.\n\nInstall Phantom: https://phantom.app');
+      window.open('https://phantom.app','_blank','noopener');
+      return;
+    }
+    try {
+      log(`requesting connection to ${prov.name}…`);
+      const resp = await prov.p.connect();
+      const addr = (resp?.publicKey ?? prov.p.publicKey)?.toString();
+      if (!addr) throw new Error('No public key returned');
+      CURRENT = { addr, prov };
+      localStorage.setItem('null_wallet_autoconnect','1');
+      setConnectedUI(true, prov.name);
+      log(`connected: ${short(addr)}`, 'ok');
+      await refresh(addr);
+    } catch(e){
+      log('connection rejected: '+e.message, 'err');
+    }
+  }
+
+  async function disconnect(){
+    try { await CURRENT?.prov?.p?.disconnect?.(); } catch {}
+    CURRENT = null;
+    localStorage.removeItem('null_wallet_autoconnect');
+    setConnectedUI(false);
+    log('disconnected');
+  }
+
+  // Auto-reconnect if previously connected (silent)
+  async function tryEagerConnect(){
+    if (!localStorage.getItem('null_wallet_autoconnect')) return;
+    const prov = getProvider(); if (!prov) return;
+    try {
+      const resp = await prov.p.connect({ onlyIfTrusted: true });
+      const addr = (resp?.publicKey ?? prov.p.publicKey)?.toString();
+      if (addr){
+        CURRENT = { addr, prov };
+        setConnectedUI(true, prov.name);
+        await refresh(addr);
+      }
+    } catch {/* user not pre-approved */}
+  }
+
+  // Wire up
+  document.addEventListener('DOMContentLoaded', () => {
+    $('wallet-btn').addEventListener('click', () => CURRENT ? disconnect() : connect());
+    $('wallet-connect-2').addEventListener('click', connect);
+    $('w-disconnect').addEventListener('click', disconnect);
+    $('w-copy').addEventListener('click', () => {
+      if (!CURRENT) return;
+      navigator.clipboard.writeText(CURRENT.addr);
+      $('w-copy').textContent = 'copied';
+      setTimeout(()=>$('w-copy').textContent='copy', 1500);
+    });
+    tryEagerConnect();
+
+    // React to wallet account changes
+    const prov = getProvider();
+    if (prov){
+      prov.p.on?.('accountChanged', (pk) => {
+        if (pk){
+          CURRENT.addr = pk.toString();
+          refresh(CURRENT.addr);
+          log('account changed: '+short(CURRENT.addr));
+        } else { disconnect(); }
+      });
+      prov.p.on?.('disconnect', () => { setConnectedUI(false); CURRENT=null; log('wallet disconnected'); });
+    }
+  });
+})();
+</script>
+
+<script>
+/* ============================================================
+ * $NULL — summon mini-ritual
+ * ============================================================ */
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const cells = () => Array.from(document.querySelectorAll('#game-board .cell'));
+  let score=0, streak=0, best=Number(localStorage.getItem('null_best')||0), running=false;
+  let liveIdx=-1, liveTimer=null, tickTimer=null, level=0;
+  const elScore=$('g-score'), elStreak=$('g-streak'), elBest=$('g-best'), elRank=$('g-rank');
+  const logEl=$('g-log');
+  const log=(m,c='')=>{const d=document.createElement('div');d.className=c;d.textContent=`> ${m}`;logEl.prepend(d);};
+  const rank=(s)=> s>=25?'THE COMPILED':s>=10?'witness':s>=3?'echo':'outsider';
+
+  function paint(){
+    elScore.textContent=score;
+    elStreak.textContent=streak;
+    elBest.textContent=best;
+    elRank.textContent=rank(streak);
+    elRank.style.color = streak>=10 ? 'var(--green)' : streak>=3 ? 'var(--green-dim,#00b85c)' : '#bfffd9';
+  }
+
+  function clearLive(){
+    if(liveTimer){clearTimeout(liveTimer);liveTimer=null;}
+    cells().forEach(c=>c.classList.remove('live'));
+    liveIdx=-1;
+  }
+  function flashCell(i, cls){
+    const c=cells()[i]; if(!c) return;
+    c.classList.add(cls);
+    setTimeout(()=>c.classList.remove(cls), 280);
+  }
+
+  function spawn(){
+    if(!running) return;
+    clearLive();
+    const idx=Math.floor(Math.random()*9);
+    liveIdx=idx;
+    cells()[idx].classList.add('live');
+    // window shrinks as streak grows
+    const dur = Math.max(280, 750 - streak*22);
+    liveTimer=setTimeout(()=>{
+      if(liveIdx===idx && running){
+        // missed (timeout)
+        flashCell(idx,'miss');
+        streak=0;
+        log('the ghost slipped past you.','err');
+        paint();
+      }
+      liveIdx=-1;
+    }, dur);
+    // next spawn
+    const gap = Math.max(220, 900 - streak*25);
+    tickTimer=setTimeout(spawn, dur+gap);
+  }
+
+  function start(){
+    score=0; streak=0; running=true; level=0;
+    paint(); logEl.innerHTML=''; log('ritual started. focus.', 'ok');
+    $('g-start').textContent='■ end ritual';
+    spawn();
+  }
+  function stop(reason){
+    running=false; clearLive();
+    if(tickTimer){clearTimeout(tickTimer);tickTimer=null;}
+    $('g-start').textContent='▶ begin ritual';
+    if(score>best){ best=score; localStorage.setItem('null_best',best); log(`new high score: ${best}`,'gold'); }
+    if(reason) log(reason);
+    paint();
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    paint();
+    $('g-start').addEventListener('click', ()=> running ? stop('ritual ended.') : start());
+    cells().forEach(c=>{
+      c.addEventListener('click', ()=>{
+        if(!running){ log('press [begin ritual] first.'); return; }
+        const i=Number(c.dataset.i);
+        if(i===liveIdx){
+          score++; streak++;
+          flashCell(i,'hit');
+          clearLive();
+          if(streak===10) log('THE COMPILED rank achieved.','gold');
+          if(streak===25) log('he sees you now.','gold');
+          paint();
+        } else {
+          flashCell(i,'miss');
+          streak=0;
+          log('misclick. session corrupted.','err');
+          paint();
+        }
+      });
+    });
+  });
+})();
+</script>
+
+<script>
+/* ============================================================
+ * $NULL — off-chain leaderboard (top 50, by best score)
+ * Storage: textdb.online (free public KV with CORS).
+ *   GET  https://textdb.online/{KEY}        -> JSON body
+ *   POST https://textdb.online/update        body=key=...&value=...
+ * Concurrency: optimistic re-read after write; per-address dedupe (highest wins).
+ * ============================================================ */
+(function(){
+  const KEY = 'null-leaderboard-v1-x9k2';
+  const READ_URL = 'https://textdb.online/' + KEY;
+  const WRITE_URL = 'https://textdb.online/update';
+  const TOP_N = 50;
+
+  const $ = (id) => document.getElementById(id);
+  const short = (a) => a ? a.slice(0,4) + '…' + a.slice(-4) : '—';
+  const ago = (t) => {
+    const s = Math.max(1, Math.floor((Date.now()-t)/1000));
+    if (s<60) return s+'s ago';
+    if (s<3600) return Math.floor(s/60)+'m ago';
+    if (s<86400) return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago';
+  };
+  const rankOf = (s)=> s>=25?'compiled':s>=10?'witness':s>=3?'echo':'outsider';
+  const setStatus = (msg, cls='') => { const e=$('lb-status'); e.textContent=msg; e.className='lb-status '+cls; };
+
+  // Get currently connected wallet address from the DOM (set by the wallet panel)
+  function connectedAddress(){
+    const btn = $('wallet-btn');
+    if (!btn || !btn.classList.contains('connected')) return null;
+    const a = $('w-addr')?.textContent?.trim();
+    return (a && a !== '—') ? a : null;
+  }
+  function bestScore(){ return Number(localStorage.getItem('null_best')||0); }
+
+  async function fetchBoard(){
+    setStatus('loading…');
+    try {
+      const r = await fetch(READ_URL + '?_=' + Date.now(), { cache:'no-store' });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      const txt = await r.text();
+      let json;
+      try { json = JSON.parse(txt); } catch { json = { scores: [] }; }
+      const scores = Array.isArray(json.scores) ? json.scores : [];
+      // dedupe by address (keep max), sort desc, top N
+      const map = new Map();
+      for (const e of scores){
+        if (!e || typeof e.a !== 'string' || typeof e.s !== 'number') continue;
+        const prev = map.get(e.a);
+        if (!prev || e.s > prev.s) map.set(e.a, { a:e.a, s:e.s, t:Number(e.t)||Date.now() });
+      }
+      const list = [...map.values()].sort((x,y)=> y.s - x.s).slice(0, TOP_N);
+      render(list);
+      setStatus(`loaded · ${map.size} summoners`, 'ok');
+      return [...map.values()].sort((x,y)=> y.s - x.s);
+    } catch(e){
+      setStatus('load failed: '+e.message, 'err');
+      $('lb-body').innerHTML = `<tr><td colspan="5" class="lb-empty">registry unreachable. try [refresh].</td></tr>`;
+      return null;
+    }
+  }
+
+  function render(list){
+    const me = connectedAddress();
+    const body = $('lb-body');
+    if (!list.length){
+      body.innerHTML = `<tr><td colspan="5" class="lb-empty">no summoners yet — be the first to submit.</td></tr>`;
+    } else {
+      body.innerHTML = list.map((e, i) => {
+        const rk = rankOf(e.s);
+        const cls = (i===0?'top1':i<3?'top3':'') + (me===e.a?' me':'');
+        return `<tr class="${cls}">
+          <td class="rk"><span class="rk-val">${String(i+1).padStart(2,'0')}</span></td>
+          <td class="addr mono">${short(e.a)}</td>
+          <td class="num"><span class="best-val">${e.s}</span></td>
+          <td class="rank"><span class="rank-tag ${rk}">${rk}</span></td>
+          <td class="time"><span class="time-val">${ago(e.t)}</span></td>
+        </tr>`;
+      }).join('');
+    }
+    // Render "your position" panel even if outside top 50
+    if (me){
+      const all = window.__lbAll || list;
+      const idx = all.findIndex(e=> e.a===me);
+      const meRow = idx>=0 ? all[idx] : { a: me, s: bestScore(), t: Date.now() };
+      $('lb-me').hidden = false;
+      $('me-rank').textContent = idx>=0 ? '#'+(idx+1) : '—';
+      $('me-addr').textContent = short(me);
+      $('me-best').textContent = meRow.s + ' best';
+    } else {
+      $('lb-me').hidden = true;
+    }
+  }
+
+  async function submit(){
+    const addr = connectedAddress();
+    if (!addr){ setStatus('connect wallet first', 'err'); return; }
+    const score = bestScore();
+    if (!score){ setStatus('play [summon] first to set a best score', 'err'); return; }
+    setStatus('submitting…');
+    try {
+      // Re-read latest, merge, write back
+      const r = await fetch(READ_URL + '?_=' + Date.now(), { cache:'no-store' });
+      const txt = r.ok ? await r.text() : '{"scores":[]}';
+      let json; try { json = JSON.parse(txt); } catch { json = {scores:[]}; }
+      const scores = Array.isArray(json.scores) ? json.scores : [];
+      const idx = scores.findIndex(e=> e?.a === addr);
+      const entry = { a: addr, s: score, t: Date.now() };
+      if (idx>=0){
+        if (scores[idx].s >= score){
+          // no improvement — still bump timestamp? keep silent
+          setStatus(`no improvement · best on chain: ${scores[idx].s}`, 'ok');
+          window.__lbAll = scores.sort((x,y)=>y.s-x.s);
+          render(window.__lbAll.slice(0,TOP_N));
+          return;
+        }
+        scores[idx] = entry;
+      } else {
+        scores.push(entry);
+      }
+      // Cap stored entries to avoid bloat (keep top 500 by score)
+      const trimmed = scores
+        .filter(e=> e && typeof e.a==='string' && typeof e.s==='number' && e.s>0)
+        .sort((x,y)=> y.s-x.s).slice(0, 500);
+
+      const body = new URLSearchParams();
+      body.set('key', KEY);
+      body.set('value', JSON.stringify({ scores: trimmed }));
+      const w = await fetch(WRITE_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+        body: body.toString()
+      });
+      if (!w.ok) throw new Error('HTTP '+w.status);
+      setStatus(`submitted · best=${score}`, 'ok');
+      await fetchBoard();
+    } catch(e){
+      setStatus('submit failed: '+e.message, 'err');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    $('lb-refresh').addEventListener('click', fetchBoard);
+    $('lb-submit').addEventListener('click', submit);
+    const all = await fetchBoard();
+    if (all) window.__lbAll = all;
+    // Re-render when wallet connects/disconnects (poll lightly)
+    let lastAddr = connectedAddress();
+    setInterval(() => {
+      const a = connectedAddress();
+      if (a !== lastAddr){
+        lastAddr = a;
+        render((window.__lbAll || []).slice(0, TOP_N));
+      }
+    }, 1500);
+  });
+})();
+</script>
+
+<style>
+  /* Single-page router — fade + slide transitions */
+  .wrap > section{display:none}
+  .wrap > section.route-active{
+    display:block;
+    animation:route-fade .42s ease-out both, route-slide .55s cubic-bezier(.2,.8,.2,1) both;
+  }
+  /* Stagger child blocks for an editorial feel */
+  .wrap > section.route-active > *{
+    animation:route-child .55s cubic-bezier(.2,.8,.2,1) both;
+    animation-delay:calc(var(--i,0) * 60ms + 80ms);
+  }
+  @keyframes route-fade{from{opacity:0}to{opacity:1}}
+  @keyframes route-slide{from{transform:translateY(14px)}to{transform:translateY(0)}}
+  @keyframes route-child{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  #main-nav a[data-active="1"]{color:var(--green);text-shadow:0 0 8px var(--green);border-bottom:1px solid var(--green)}
+  @media (prefers-reduced-motion: reduce){
+    .wrap > section.route-active,
+    .wrap > section.route-active > *{animation:none!important}
+  }
+</style>
+
+<script>
+/* ============================================================
+ * $NULL — single-page router (hash-based)
+ * ============================================================ */
+(function(){
+  const ROUTES = ['home','wallet','lore','use','road','summon','leaderboard','faq'];
+  const navLinks = () => Array.from(document.querySelectorAll('#main-nav a[data-route]'));
+
+  function show(route){
+    if (!ROUTES.includes(route)) route = 'home';
+    document.querySelectorAll('.wrap > section').forEach(sec => {
+      const on = sec.id === route;
+      sec.classList.toggle('route-active', on);
+      if (on){
+        // Force reflow so the animation restarts on every route switch
+        void sec.offsetWidth;
+        Array.from(sec.children).forEach((c,i)=>c.style.setProperty('--i', i));
+      }
+    });
+    navLinks().forEach(a => {
+      a.setAttribute('data-active', a.dataset.route === route ? '1' : '0');
+    });
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  }
+
+  function fromHash(){
+    const h = (location.hash || '#home').replace(/^#/,'');
+    show(h);
+  }
+
+  // Intercept ALL in-page hash links (including hero CTA buttons)
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute('href').slice(1);
+    if (!id || !ROUTES.includes(id)) return;
+    e.preventDefault();
+    if (location.hash !== '#'+id){
+      history.pushState(null,'','#'+id);
+    }
+    show(id);
+  });
+
+  window.addEventListener('hashchange', fromHash);
+  document.addEventListener('DOMContentLoaded', fromHash);
+})();
+</script>
+
+</body>
+</html>
